@@ -1,0 +1,13 @@
+langgraph>=0.2.0
+langgraph-checkpoint-sqlite>=2.0.0
+langchain>=0.3.0
+langchain-voyageai>=0.1.4
+voyageai>=0.5.0
+langchain-anthropic>=0.3.0
+langchain-chroma>=0.1.4
+langchain-text-splitters>=0.3.0
+chromadb>=0.5.0
+slack_sdk>=3.31.0
+slack-bolt>=1.20.0
+python-dotenv>=1.0.1
+prometheus-client>=0.20.0

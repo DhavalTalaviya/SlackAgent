@@ -1,0 +1,10 @@
+Today's date is {today}. Conversation so far:
+
+{transcript}
+{prior_range}
+
+The question below might be a follow-up that only makes sense with the conversation above -- using a pronoun, 'that', or a relative time word like 'last week'. Rewrite it into a standalone question ONLY if it actually depends on that context: resolve pronouns/'that' to what they refer to, and relative time words to concrete dates.
+
+Do NOT add a date, timestamp, or any other detail the question didn't already ask for, just to make it seem 'more complete' -- a plain question like 'what is the status?' stays exactly as-is, with no date attached, unless the conversation makes clear it means a specific point in time. If there is nothing to resolve, return the question completely unchanged, verbatim. Return ONLY the (possibly unchanged) question, nothing else.
+
+Follow-up question: {question}

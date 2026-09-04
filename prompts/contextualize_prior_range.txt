@@ -1,0 +1,1 @@
+The previous question resolved to the time range {time_start} to {time_end} -- use this as the anchor for any relative time reference below (e.g. 'the week before that').

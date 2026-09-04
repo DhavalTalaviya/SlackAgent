@@ -1,0 +1,121 @@
+# Both containers run in ONE pod (replicas: 1), not two separate Deployments.
+# This is deliberate, not a limitation of the manifest: chroma_db and state/
+# are a local Chroma index + local SQLite files, which aren't safe for
+# concurrent multi-pod writers (SQLite file-locking and Chroma's local
+# client both assume a single process/node). Same-pod containers always
+# share a node, so a plain ReadWriteOnce volume is safe here; splitting into
+# two Deployments would need ReadWriteMany storage (NFS/EFS/etc.) or risk
+# data corruption. Scaling slack-bot horizontally is genuinely possible later
+# (Slack's Socket Mode load-balances across connections from the same app),
+# but only once the storage layer moves to something that supports
+# concurrent writers -- a managed vector DB and a Postgres-backed
+# checkpointer, not local files. Until then this intentionally has no HPA.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: slack-agent
+  namespace: slack-agent
+spec:
+  replicas: 1
+  strategy:
+    # RollingUpdate would try to start the new pod before the old one
+    # releases its ReadWriteOnce volumes -- it would get stuck unable to
+    # mount. Recreate tears down the old pod first.
+    type: Recreate
+  selector:
+    matchLabels:
+      app: slack-agent
+  template:
+    metadata:
+      labels:
+        app: slack-agent
+    spec:
+      containers:
+        - name: slack-bot
+          image: your-registry/slack-agent:latest
+          command: ["python", "slack_bot.py"]
+          envFrom:
+            - configMapRef:
+                name: slack-agent-config
+            - secretRef:
+                name: slack-agent-secrets
+          ports:
+            - containerPort: 8080
+          volumeMounts:
+            - name: chroma-data
+              mountPath: /app/chroma_db
+            - name: state-data
+              mountPath: /app/state
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: 8080
+            initialDelaySeconds: 15
+            periodSeconds: 30
+            timeoutSeconds: 5
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /healthz
+              port: 8080
+            initialDelaySeconds: 10
+            periodSeconds: 15
+            timeoutSeconds: 5
+          resources:
+            requests:
+              cpu: 100m
+              memory: 256Mi
+            limits:
+              cpu: 500m
+              memory: 512Mi
+
+        - name: ingest-worker
+          image: your-registry/slack-agent:latest
+          command: ["python", "ingest_worker.py"]
+          envFrom:
+            - configMapRef:
+                name: slack-agent-config
+            - secretRef:
+                name: slack-agent-secrets
+          env:
+            # Containers in one pod share a network namespace -- must not
+            # collide with slack-bot's port 8080.
+            - name: HEALTH_CHECK_PORT
+              value: "8081"
+          ports:
+            - containerPort: 8081
+          volumeMounts:
+            - name: chroma-data
+              mountPath: /app/chroma_db
+            - name: state-data
+              mountPath: /app/state
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: 8081
+            initialDelaySeconds: 15
+            periodSeconds: 30
+            timeoutSeconds: 5
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /healthz
+              port: 8081
+            initialDelaySeconds: 10
+            periodSeconds: 15
+            timeoutSeconds: 5
+          resources:
+            requests:
+              cpu: 100m
+              memory: 256Mi
+            limits:
+              cpu: 500m
+              memory: 512Mi
+
+      volumes:
+        - name: chroma-data
+          persistentVolumeClaim:
+            claimName: chroma-data
+        - name: state-data
+          persistentVolumeClaim:
+            claimName: state-data

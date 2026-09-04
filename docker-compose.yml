@@ -1,0 +1,40 @@
+services:
+  slack-bot:
+    build: .
+    command: ["python", "slack_bot.py"]
+    env_file: .env
+    ports:
+      - "8080:8080"
+    volumes:
+      - chroma_data:/app/chroma_db
+      - state_data:/app/state
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request,sys; sys.exit(0 if urllib.request.urlopen('http://localhost:8080/healthz', timeout=3).status == 200 else 1)"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
+
+  ingest-worker:
+    build: .
+    command: ["python", "ingest_worker.py"]
+    env_file: .env
+    environment:
+      - HEALTH_CHECK_PORT=8080
+    ports:
+      - "8081:8080"
+    volumes:
+      - chroma_data:/app/chroma_db
+      - state_data:/app/state
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request,sys; sys.exit(0 if urllib.request.urlopen('http://localhost:8080/healthz', timeout=3).status == 200 else 1)"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
+
+volumes:
+  chroma_data:
+  state_data:

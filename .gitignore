@@ -1,0 +1,33 @@
+# Secrets -- never commit real credentials
+.env
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+build/
+dist/
+
+# Virtual environment
+.venv/
+venv/
+
+# Local runtime data (vector index, ingestion cursor, conversation memory,
+# rate-limit counters) -- generated at runtime, not source
+chroma_db/
+state/
+
+# Local dev tooling artifacts
+.langgraph_api/
+*.log
+
+# Editor/OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# Test tooling
+.pytest_cache/
+.coverage
+htmlcov/

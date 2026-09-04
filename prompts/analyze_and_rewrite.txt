@@ -1,0 +1,3 @@
+Today's date is {today}. Analyze this question about a team's Slack history (messages, meeting notes, and transcripts): classify its intent, AND generate search-query rewrites for retrieval.
+
+Question: {question}

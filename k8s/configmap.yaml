@@ -1,0 +1,20 @@
+# Non-secret, tunable settings. See .env.example at the repo root for what
+# each one does. Secrets (tokens/API keys) live in a Secret instead -- see
+# secret.example.yaml.
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: slack-agent-config
+  namespace: slack-agent
+data:
+  SLACK_CHANNEL_IDS: ""
+  ANTHROPIC_MODEL: "claude-opus-5"
+  CHROMA_PERSIST_DIR: "/app/chroma_db"
+  CHROMA_COLLECTION_NAME: "team_knowledge"
+  STATE_DIR: "/app/state"
+  WORKSPACE_ID: "default"
+  INGEST_INTERVAL_SECONDS: "300"
+  RATE_LIMIT_BURST_MAX: "5"
+  RATE_LIMIT_BURST_WINDOW_SECONDS: "60"
+  RATE_LIMIT_DAILY_MAX: "50"
+  HEALTH_CHECK_PORT: "8080"

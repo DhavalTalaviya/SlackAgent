@@ -1,0 +1,6 @@
+Question: {question}
+
+Answer using ONLY the numbered Slack excerpts below. Also check whether any of them genuinely disagree with each other about the same fact or decision relevant to the question.
+
+Excerpts:
+{excerpts}

@@ -1,0 +1,30 @@
+# Requires the Prometheus Operator (e.g. the kube-prometheus-stack Helm
+# chart) installed in the cluster. If you're running plain Prometheus
+# instead, skip this file and add a scrape_config targeting the
+# slack-agent Service's two ports (8080, 8081) with path /metrics.
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: slack-agent
+  namespace: slack-agent
+  labels:
+    # Must match your Prometheus Operator's serviceMonitorSelector, or it
+    # won't be picked up -- this is the #1 reason a ServiceMonitor silently
+    # does nothing. For kube-prometheus-stack the usual convention is the
+    # Helm release name; check `kubectl get prometheus -o yaml` for the
+    # actual selector your cluster expects and adjust this label to match.
+    release: kube-prometheus-stack
+spec:
+  namespaceSelector:
+    matchNames:
+      - slack-agent
+  selector:
+    matchLabels:
+      app: slack-agent
+  endpoints:
+    - port: slack-bot-health
+      path: /metrics
+      interval: 30s
+    - port: ingest-worker-health
+      path: /metrics
+      interval: 30s

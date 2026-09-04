@@ -1,0 +1,18 @@
+# Not required for the bot to function -- Socket Mode is outbound-only, and
+# kubelet talks to pod IPs directly for probes. This just gives you
+# `kubectl port-forward svc/slack-agent 8080:8080` for manual health checks.
+apiVersion: v1
+kind: Service
+metadata:
+  name: slack-agent
+  namespace: slack-agent
+spec:
+  selector:
+    app: slack-agent
+  ports:
+    - name: slack-bot-health
+      port: 8080
+      targetPort: 8080
+    - name: ingest-worker-health
+      port: 8081
+      targetPort: 8081

@@ -1,0 +1,73 @@
+# Requires the Prometheus Operator. Thresholds below are reasonable starting
+# points, not tuned to your actual traffic/budget -- adjust after you have a
+# few days of real data, especially DailySpendBudgetExceeded.
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: slack-agent-alerts
+  namespace: slack-agent
+  labels:
+    release: kube-prometheus-stack  # must match your Prometheus's ruleSelector, same caveat as the ServiceMonitor
+spec:
+  groups:
+    - name: slack-agent
+      rules:
+        - alert: SlackAgentHighErrorRate
+          expr: |
+            sum(rate(ask_requests_total{outcome="error"}[10m]))
+              / sum(rate(ask_requests_total[10m])) > 0.1
+          for: 10m
+          labels:
+            severity: warning
+          annotations:
+            summary: "Over 10% of questions are erroring"
+            description: "{{ $value | humanizePercentage }} of ask() calls have failed outright over the last 10m."
+
+        - alert: SlackAgentHighLatency
+          expr: |
+            histogram_quantile(0.95, sum by (le) (rate(ask_latency_seconds_bucket[10m]))) > 30
+          for: 10m
+          labels:
+            severity: warning
+          annotations:
+            summary: "p95 answer latency is above 30s"
+            description: "p95 ask() latency has been over 30s for 10 minutes: {{ $value | humanizeDuration }}."
+
+        - alert: SlackAgentProcessStalled
+          expr: |
+            time() - process_last_heartbeat_timestamp_seconds > 600
+          for: 5m
+          labels:
+            severity: critical
+          annotations:
+            summary: "slack-bot or ingest-worker has stopped making progress"
+            description: "No heartbeat in over 10 minutes on {{ $labels.instance }} -- the process may be hung even though its port is still open. The container orchestrator's own liveness probe should restart it, but a human should also know."
+
+        - alert: SlackAgentRetrievalMostlyEmpty
+          expr: |
+            sum(rate(retrieval_empty_total[30m])) / sum(rate(ask_requests_total{outcome="answered"}[30m])) > 0.5
+          for: 30m
+          labels:
+            severity: warning
+          annotations:
+            summary: "Retrieval is finding nothing for most questions"
+            description: "Over half of recent turns retrieved zero candidates -- check whether ingestion is actually running and populating the vector store."
+
+        - alert: SlackAgentDailySpendBudgetExceeded
+          expr: |
+            sum(increase(anthropic_cost_usd_total[24h])) > 50
+          labels:
+            severity: warning
+          annotations:
+            summary: "Estimated Anthropic spend has exceeded the daily budget"
+            description: "Estimated spend over the last 24h is ${{ $value | printf \"%.2f\" }} (list-price estimate, budget threshold currently hardcoded at $50 in this rule -- edit to match your actual budget)."
+
+        - alert: SlackAgentRateLimitSpike
+          expr: |
+            sum(rate(rate_limit_blocked_total[15m])) > 0.5
+          for: 15m
+          labels:
+            severity: info
+          annotations:
+            summary: "Rate limiting is blocking requests unusually often"
+            description: "{{ $value | printf \"%.2f\" }} blocked requests/sec over 15m -- could be abuse, a runaway client, or limits set too low for real usage."

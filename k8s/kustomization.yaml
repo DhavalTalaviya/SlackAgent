@@ -1,0 +1,18 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+namespace: slack-agent
+resources:
+  - namespace.yaml
+  - configmap.yaml
+  - pvc.yaml
+  - deployment.yaml
+  - service.yaml
+  # secret.yaml is intentionally not listed -- create it with `kubectl
+  # create secret` (see secret.example.yaml) rather than committing it.
+  #
+  # servicemonitor.yaml and prometheusrule.yaml are also intentionally not
+  # listed: they're CRDs from the Prometheus Operator, and including them
+  # here would break `kubectl apply -k` on any cluster that doesn't have it
+  # installed. Once you've confirmed the Operator is present
+  # (`kubectl get crd servicemonitors.monitoring.coreos.com`), apply those
+  # two separately: `kubectl apply -f k8s/servicemonitor.yaml -f k8s/prometheusrule.yaml`
