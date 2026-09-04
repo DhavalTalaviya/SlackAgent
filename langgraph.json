@@ -1,8 +1,8 @@
 {
   "dependencies": ["."],
   "graphs": {
-    "qa_agent": "./src/qa_graph.py:build_qa_graph",
-    "slack_ingest": "./src/graph.py:build_graph"
+    "qa_agent": "./src/agent/qa_graph.py:build_qa_graph",
+    "slack_ingest": "./src/ingestion/graph.py:build_graph"
   },
   "env": ".env"
 }

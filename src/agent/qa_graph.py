@@ -14,6 +14,7 @@ from langgraph.checkpoint.sqlite import SqliteSaver
 from langgraph.graph import END, START, StateGraph
 from langgraph.graph.message import add_messages
 from pydantic import BaseModel, Field
+from langgraph.checkpoint.base import BaseCheckpointSaver
 
 from src.agent.prompts import (
     ANALYZE_AND_REWRITE,
@@ -518,6 +519,9 @@ def build_qa_graph(checkpointer=None):
     builder.add_edge("no_access", "record_turn")
     builder.add_edge("error_response", "record_turn")
     builder.add_edge("record_turn", END)
+    
+    if not isinstance(checkpointer, (BaseCheckpointSaver, bool)):
+        checkpointer = None
 
     return builder.compile(checkpointer=checkpointer)
 
