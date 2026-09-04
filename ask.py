@@ -14,7 +14,7 @@ def _print_result(result: dict) -> None:
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="Ask the Slack knowledge agent a question.")
+    parser = argparse.ArgumentParser(description="Ask SlackAgent a question.")
     parser.add_argument(
         "--user",
         required=True,

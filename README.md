@@ -1,4 +1,4 @@
-# Slack Knowledge Agent
+# SlackAgent
 
 A LangGraph-based agent that answers questions about a team's work by retrieving from its own Slack history — messages, threads, and pasted meeting transcripts — using Claude for reasoning and Voyage AI for embeddings and reranking.
 

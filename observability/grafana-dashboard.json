@@ -9,7 +9,7 @@
       "pluginName": "Prometheus"
     }
   ],
-  "title": "Slack Knowledge Agent",
+  "title": "SlackAgent",
   "uid": "slack-agent-overview",
   "schemaVersion": 39,
   "version": 1,
